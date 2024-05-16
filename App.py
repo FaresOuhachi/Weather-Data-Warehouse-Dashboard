@@ -1,4 +1,5 @@
 import random
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
@@ -15,10 +16,7 @@ app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 def connect_to_data_warehouse():
     warehouse = DataWarehouseManager('localhost', 'root', '', 'Weather_DataWarehouse', 'utf8mb4', DictCursor)
-
-    print('----------------------------- Connecting to the database -----------------------------\n\n')
     warehouse.connect()
-    print('----------------------------- Connected !!! -----------------------------\n\n\n')
     return warehouse
 
 
@@ -153,7 +151,7 @@ def fetch_data_barchart(year_range, parameter):
 
 
 @app.callback(Output('bar-chart', 'figure'),
-    [Input('year-range-slider-bar', 'value'), Input('parameter-dropdown-bar', 'value')])
+              [Input('year-range-slider-bar', 'value'), Input('parameter-dropdown-bar', 'value')])
 def update_bar_chart(year_range, parameter):
     df = fetch_data_barchart(year_range, parameter)  # Fetch data based on selected year range and parameter
     if not df.empty:
@@ -196,7 +194,7 @@ def update_graph(selected_param, selected_city):
         line_chart_data['station_city'] == selected_city]  # Filter data based on selected city
     fig = px.line(filtered_df, x='YEAR', y=selected_param, title='Weather Parameters Evolution Over Years')
     fig.update_layout(xaxis_title="Year", yaxis_title="Parameter Value", legend_title="City Stations",
-        font=dict(family="Arial, sans-serif", size=12, color="RebeccaPurple"))
+                      font=dict(family="Arial, sans-serif", size=12, color="RebeccaPurple"))
     return fig
 
 
@@ -326,7 +324,8 @@ app.layout = html.Div([html.H1("Tableau de Bord d'Analyse Météorologique", cla
                                                                                                                   className='label',
                                                                                                                   style={
                                                                                                                       'textAlign': 'center',
-                                                                                                                      'margin': '20px'}),
+                                                                                                                      'margin':'auto',
+                                                                                                                      'marginBottom': '20px'}),
                                                                                                               dcc.Dropdown(
                                                                                                                   id='parameter-dropdown-bar',
                                                                                                                   options=[
@@ -444,8 +443,8 @@ app.layout = html.Div([html.H1("Tableau de Bord d'Analyse Météorologique", cla
                                                                                                           id='weather-graph',
                                                                                                           className='line-chart')],
                                                                                                       className='content')])])],
-    style={'backgroundColor': '#f1f1f1', 'padding': '20px'})
+                      style={'backgroundColor': '#f1f1f1', 'padding': '20px'})
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True, host='192.168.1.35', port=8050)
+    app.run_server(debug=True)
