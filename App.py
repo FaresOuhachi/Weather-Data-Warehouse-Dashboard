@@ -26,10 +26,6 @@ def fetch_years():
     # Generate a list of years with steps of 5
     return [year for year in years_list if year % 5 == 0]
 
-# Fetch months
-def fetch_months():
-    return list(range(1, 13))
-
 # First Layout (Heatmap)
 def fetch_data_heatmap(parameter, year_range, month_range):
     cursor = connect_to_data_warehouse().get_cursor()
@@ -165,7 +161,7 @@ app.layout = html.Div([
                                 tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
                 html.Label("Choisissez l'intervalle des mois:", className='label', style={'textAlign': 'center', 'marginBottom': '20px','marginTop': '10px'}),
                 dcc.RangeSlider(id='month-range-slider', min=1, max=12, step=1, value=[1, 12],
-                                marks={month: str(month) for month in fetch_months()},
+                                marks={month: str(month) for month in list(range(1, 13))},
                                 tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
                 dcc.Graph(id='heatmap', className='heatmap-graph')
             ], className='content')
@@ -195,7 +191,7 @@ app.layout = html.Div([
                                 tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
                 html.Label("Choisissez l'intervalle des mois:", className='label', style={'marginBottom': '20px','marginTop': '10px'}),
                 dcc.RangeSlider(id='month-range-slider-bar', min=1, max=12, step=1, value=[1, 12],
-                                marks={month: str(month) for month in fetch_months()},
+                                marks={month: str(month) for month in list(range(1, 13))},
                                 tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
                 dcc.Graph(id='bar-chart', className='bar-chart')
             ], className='content')
