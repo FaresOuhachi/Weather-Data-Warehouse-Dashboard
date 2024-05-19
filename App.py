@@ -172,16 +172,7 @@ app.layout = html.Div([
         ]),
         dcc.Tab(label='Bar Chart', value='tab-2', children=[
             html.Div([
-                html.Label("Choisissez l'intervalle de temps:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
-                dcc.RangeSlider(id='year-range-slider-bar', min=int(fetch_years()[0]), max=int(fetch_years()[-1]), step=1,
-                                value=[int(fetch_years()[0]), int(fetch_years()[-1])],
-                                marks={int(year): str(year) for year in fetch_years()},
-                                tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
-                html.Label("Choisissez l'intervalle des mois:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
-                dcc.RangeSlider(id='month-range-slider-bar', min=1, max=12, step=1, value=[1, 12],
-                                marks={month: str(month) for month in fetch_months()},
-                                tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
-                html.Label("Sélectionnez le paramètre météorologique:", className='label', style={'textAlign': 'center', 'margin': 'auto', 'marginBottom': '20px'}),
+                html.Label("Sélectionnez le paramètre météorologique:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
                 dcc.Dropdown(id='parameter-dropdown-bar', options=[
                     {'label': 'Analyse des précipitations (PRCP)', 'value': 'PRCP'},
                     {'label': 'Analyse des températures moyennes (TAVG)', 'value': 'TAVG'},
@@ -193,10 +184,19 @@ app.layout = html.Div([
                     {'label': 'Analyse de la direction du vent (WDFG)', 'value': 'WDFG'},
                     {'label': 'Analyse de la vitesse du vent (WSFG)', 'value': 'WSFG'}
                 ], value='TAVG', clearable=False, style={'width': '50%', 'margin': 'auto', 'marginBottom': '20px'}, className='dropdown'),
-                html.Label("Sélectionnez un pays:", className='label', style={'textAlign': 'center', 'margin': 'auto', 'marginBottom': '20px'}),
+                html.Label("Sélectionnez un pays:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
                 dcc.Dropdown(id='country-dropdown-bar', options=[
                     {'label': country, 'value': country} for country in sorted(line_chart_data['station_country'].unique())
                 ], value=None, clearable=True, style={'width': '50%', 'margin': 'auto', 'marginBottom': '20px'}, className='dropdown'),
+                html.Label("Choisissez l'intervalle de temps:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                dcc.RangeSlider(id='year-range-slider-bar', min=int(fetch_years()[0]), max=int(fetch_years()[-1]), step=1,
+                                value=[int(fetch_years()[0]), int(fetch_years()[-1])],
+                                marks={int(year): str(year) for year in fetch_years()},
+                                tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
+                html.Label("Choisissez l'intervalle des mois:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                dcc.RangeSlider(id='month-range-slider-bar', min=1, max=12, step=1, value=[1, 12],
+                                marks={month: str(month) for month in fetch_months()},
+                                tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
                 dcc.Graph(id='bar-chart', className='bar-chart')
             ], className='content')
         ]),
@@ -214,7 +214,7 @@ app.layout = html.Div([
                     {'label': 'Direction of Fastest 2-Min Wind (WDFG)', 'value': 'WDFG'},
                     {'label': 'Speed of Fastest 2-Min Wind (WSFG)', 'value': 'WSFG'},
                 ], value='PRCP', clearable=False, style={'width': '80%', 'margin': 'auto'}, className='dropdown'),
-                html.Label("Sélectionnez un pays:", className='label', style={'textAlign': 'center', 'margin': 'auto', 'marginBottom': '20px'}),
+                html.Label("Sélectionnez un pays:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
                 dcc.Dropdown(id='country-dropdown-line', options=[
                     {'label': country, 'value': country} for country in sorted(line_chart_data['station_country'].unique())
                 ], value=None, clearable=True, style={'width': '80%', 'margin': 'auto', 'marginBottom': '20px'}, className='dropdown'),
