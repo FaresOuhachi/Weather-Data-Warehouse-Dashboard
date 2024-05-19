@@ -70,7 +70,7 @@ def update_heatmap(parameter, year_range, month_range):
         fig = px.scatter_mapbox()
     return fig
 
-# Second Layout (Bar Chart)
+# Second Layout (Diagramme à Barres )
 def fetch_data_barchart(year_range, month_range, parameter, country=None):
     cursor = connect_to_data_warehouse().get_cursor()
     min_year, max_year = year_range
@@ -109,7 +109,7 @@ def update_bar_chart(year_range, month_range, parameter, country):
         fig = go.Figure()
     return fig
 
-# Third Layout (Line Chart)
+# Third Layout (Graphique Temporel)
 def fetch_line_data(country=None):
     cursor = connect_to_data_warehouse().get_cursor()
     country_filter = f"WHERE StationDim.station_country = '{country}'" if country else ""
@@ -142,11 +142,11 @@ line_chart_data = fetch_line_data()
 
 # Define layout of Dash app
 app.layout = html.Div([
-    html.H1("Tableau de Bord d'Analyse Météorologique", className='header', style={'textAlign': 'center', 'margin': '20px'}),
+    html.H1("Tableau de Bord d'Analyse Météorologique", className='header', style={'textAlign': 'center','marginBottom':'40px', 'color':'#333'}),
     dcc.Tabs(id="tabs", value='tab-1', children=[
-        dcc.Tab(label='Heatmap', value='tab-1', children=[
+        dcc.Tab(label='Carte de Chaleur', value='tab-1', children=[
             html.Div([
-                html.Label("Sélectionnez le paramètre météorologique:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                html.Label("Sélectionnez le paramètre météorologique:", className='label', style={'textAlign': 'center', 'marginBottom': '20px','marginTop': '10px'}),
                 dcc.Dropdown(id='parameter-dropdown', options=[
                     {'label': 'Analyse des précipitations (PRCP)', 'value': 'PRCP'},
                     {'label': 'Analyse des températures moyennes (TAVG)', 'value': 'TAVG'},
@@ -158,21 +158,21 @@ app.layout = html.Div([
                     {'label': 'Analyse de la direction du vent (WDFG)', 'value': 'WDFG'},
                     {'label': 'Analyse de la vitesse du vent (WSFG)', 'value': 'WSFG'}
                 ], value='PRCP', clearable=False, className='dropdown'),
-                html.Label("Choisissez l'intervalle de temps:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                html.Label("Choisissez l'intervalle de temps:", className='label', style={'textAlign': 'center', 'marginBottom': '20px','marginTop': '10px'}),
                 dcc.RangeSlider(id='year-range-slider', min=int(fetch_years()[0]), max=int(fetch_years()[-1]), step=1,
                                 value=[int(fetch_years()[0]), int(fetch_years()[-1])],
                                 marks={int(year): str(year) for year in fetch_years()},
                                 tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
-                html.Label("Choisissez l'intervalle des mois:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                html.Label("Choisissez l'intervalle des mois:", className='label', style={'textAlign': 'center', 'marginBottom': '20px','marginTop': '10px'}),
                 dcc.RangeSlider(id='month-range-slider', min=1, max=12, step=1, value=[1, 12],
                                 marks={month: str(month) for month in fetch_months()},
                                 tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
                 dcc.Graph(id='heatmap', className='heatmap-graph')
             ], className='content')
         ]),
-        dcc.Tab(label='Bar Chart', value='tab-2', children=[
+        dcc.Tab(label='Diagramme à Barres ', value='tab-2', children=[
             html.Div([
-                html.Label("Sélectionnez le paramètre météorologique:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                html.Label("Sélectionnez le paramètre météorologique:", className='label', style={'marginBottom': '20px','marginTop': '10px'}),
                 dcc.Dropdown(id='parameter-dropdown-bar', options=[
                     {'label': 'Analyse des précipitations (PRCP)', 'value': 'PRCP'},
                     {'label': 'Analyse des températures moyennes (TAVG)', 'value': 'TAVG'},
@@ -184,25 +184,25 @@ app.layout = html.Div([
                     {'label': 'Analyse de la direction du vent (WDFG)', 'value': 'WDFG'},
                     {'label': 'Analyse de la vitesse du vent (WSFG)', 'value': 'WSFG'}
                 ], value='TAVG', clearable=False, style={'width': '50%', 'margin': 'auto', 'marginBottom': '20px'}, className='dropdown'),
-                html.Label("Sélectionnez un pays:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                html.Label("Sélectionnez un pays:", className='label', style={'marginBottom': '20px','marginTop': '10px'}),
                 dcc.Dropdown(id='country-dropdown-bar', options=[
                     {'label': country, 'value': country} for country in sorted(line_chart_data['station_country'].unique())
                 ], value=None, clearable=True, style={'width': '50%', 'margin': 'auto', 'marginBottom': '20px'}, className='dropdown'),
-                html.Label("Choisissez l'intervalle de temps:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                html.Label("Choisissez l'intervalle de temps:", className='label', style={'marginBottom': '20px','marginTop': '10px'}),
                 dcc.RangeSlider(id='year-range-slider-bar', min=int(fetch_years()[0]), max=int(fetch_years()[-1]), step=1,
                                 value=[int(fetch_years()[0]), int(fetch_years()[-1])],
                                 marks={int(year): str(year) for year in fetch_years()},
                                 tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
-                html.Label("Choisissez l'intervalle des mois:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                html.Label("Choisissez l'intervalle des mois:", className='label', style={'marginBottom': '20px','marginTop': '10px'}),
                 dcc.RangeSlider(id='month-range-slider-bar', min=1, max=12, step=1, value=[1, 12],
                                 marks={month: str(month) for month in fetch_months()},
                                 tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
                 dcc.Graph(id='bar-chart', className='bar-chart')
             ], className='content')
         ]),
-        dcc.Tab(label='Line Chart', value='tab-3', children=[
+        dcc.Tab(label='Graphique Temporel', value='tab-3', children=[
             html.Div([
-                html.Label("Sélectionnez le paramètre météorologique:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                html.Label("Sélectionnez le paramètre météorologique:", className='label', style={'marginBottom': '20px','marginTop': '10px'}),
                 dcc.Dropdown(id='param-selector', options=[
                     {'label': 'Precipitation (PRCP)', 'value': 'PRCP'},
                     {'label': 'Average Temperature (TAVG)', 'value': 'TAVG'},
@@ -214,10 +214,10 @@ app.layout = html.Div([
                     {'label': 'Direction of Fastest 2-Min Wind (WDFG)', 'value': 'WDFG'},
                     {'label': 'Speed of Fastest 2-Min Wind (WSFG)', 'value': 'WSFG'},
                 ], value='PRCP', clearable=False, style={'width': '80%', 'margin': 'auto'}, className='dropdown'),
-                html.Label("Sélectionnez un pays:", className='label', style={'textAlign': 'center', 'margin': '20px'}),
+                html.Label("Sélectionnez un pays:", className='label', style={'marginBottom': '20px','marginTop': '10px'}),
                 dcc.Dropdown(id='country-dropdown-line', options=[
                     {'label': country, 'value': country} for country in sorted(line_chart_data['station_country'].unique())
-                ], value=None, clearable=True, style={'width': '80%', 'margin': 'auto', 'marginBottom': '20px'}, className='dropdown'),
+                ], value=None, clearable=True, style={'width': '80%', 'margin': 'auto', 'marginBottom': '20px','marginTop':'10px'}, className='dropdown'),
                 dcc.Graph(id='weather-graph', className='line-chart')
             ], className='content')
         ])
