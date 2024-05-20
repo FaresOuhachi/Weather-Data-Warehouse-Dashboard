@@ -1,7 +1,6 @@
 import pandas as pd
 import pymysql
 
-
 class DataWarehouseManager:
     def __init__(self, host, username, password, database, charset, cursorclass):
         self.host = host
@@ -10,8 +9,8 @@ class DataWarehouseManager:
         self.database = database
         self.charset = charset
         self.cursorclass = cursorclass
-        self.date_id_map = {}  # Map to store date IDs
-        self.station_id_map = {}  # Map to store station IDs
+        self.date_id_map = {}  # Carte pour stocker les identifiants de date
+        self.station_id_map = {}  # Carte pour stocker les identifiants de station
 
     def connect(self):
         self.conn = pymysql.connect(host=self.host, user=self.username, password=self.password, database=self.database,
@@ -74,9 +73,9 @@ class DataWarehouseManager:
         for data in date_dim_data:
             self.cursor.execute(date_dim_insert_query, data)
             self.conn.commit()
-            # Get the auto-generated ID for the inserted row
+            # Obtenir l'identifiant généré automatiquement pour la ligne insérée
             date_id = self.cursor.lastrowid
-            # Map the original date values to the generated ID
+            # Cartographier les valeurs de date d'origine à l'identifiant généré
             self.date_id_map[tuple(data)] = date_id
 
     def insert_station_dim(self, df):
@@ -86,9 +85,9 @@ class DataWarehouseManager:
         for data in station_dim_data:
             self.cursor.execute(station_dim_insert_query, data)
             self.conn.commit()
-            # Get the auto-generated ID for the inserted row
+            # Obtenir l'identifiant généré automatiquement pour la ligne insérée
             station_id = self.cursor.lastrowid
-            # Map the original station values to the generated ID
+            # Cartographier les valeurs de station d'origine à l'identifiant généré
             self.station_id_map[data[0]] = station_id
 
     def insert_fact_weather(self, df):
@@ -97,7 +96,7 @@ class DataWarehouseManager:
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         total_rows = len(df)
-        batch_size = 100000  # Adjust as needed
+        batch_size = 100000  # Ajuster si nécessaire
         num_batches = (total_rows + batch_size - 1) // batch_size
         batch_count = 0
 
@@ -118,7 +117,7 @@ class DataWarehouseManager:
             self.conn.commit()
 
             remaining_lines = total_rows - batch_end
-            print(f"{remaining_lines} lines left after batch {batch_count + 1}.")
+            print(f"{remaining_lines} lignes restantes après le lot {batch_count + 1}.")
 
             batch_count += 1
 
@@ -133,11 +132,11 @@ class DataWarehouseManager:
 if __name__ == "__main__":
     warehouse_manager = DataWarehouseManager('localhost', 'root', '', 'Weather_DataWarehouse', 'utf8mb4',
                                              pymysql.cursors.DictCursor)
-    print('----------------------------- Connecting to the database -----------------------------\n\n')
+    print('----------------------------- Connexion à la base de données -----------------------------\n\n')
     warehouse_manager.connect()
-    print('----------------------------- Connected !!! -----------------------------\n')
-    print('----------------------------- Loading data warehouse -----------------------------\n\n')
+    print('----------------------------- Connecté !!! -----------------------------\n')
+    print('----------------------------- Chargement de l\'entrepôt de données -----------------------------\n\n')
     warehouse_manager.load_data_warehouse('Ready_Data.csv')
-    print('----------------------------- Data warehouse loaded successfully !!! -----------------------------')
+    print('----------------------------- Entrepôt de données chargé avec succès !!! -----------------------------')
     warehouse_manager.disconnect()
-    print('----------------------------- Disconnected !!! -----------------------------')
+    print('----------------------------- Déconnecté !!! -----------------------------')
