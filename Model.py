@@ -1,6 +1,7 @@
 import pandas as pd
 import pymysql
 
+
 class DataWarehouseManager:
     def __init__(self, host, username, password, database, charset, cursorclass):
         self.host = host
@@ -130,7 +131,14 @@ class DataWarehouseManager:
 
 
 if __name__ == "__main__":
-    warehouse_manager = DataWarehouseManager('localhost', 'root', '', 'Weather_DataWarehouse', 'utf8mb4',
+    # Veuillez remplacer les valeurs suivantes par les vôtres
+
+    username = 'root'
+    password = ''
+
+    #########################################################
+
+    warehouse_manager = DataWarehouseManager('localhost', username, password, 'Weather_DataWarehouse', 'utf8mb4',
                                              pymysql.cursors.DictCursor)
     print('----------------------------- Connexion à la base de données -----------------------------\n\n')
     warehouse_manager.connect()

@@ -9,18 +9,22 @@ from pymysql.cursors import DictCursor
 from Model import DataWarehouseManager
 
 external_stylesheets = ['https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css']
-
-# Initialize Dash app
 app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 
 def connect_to_data_warehouse():
-    warehouse = DataWarehouseManager('localhost', 'root', '', 'Weather_DataWarehouse', 'utf8mb4', DictCursor)
+    # Veuillez remplacer les valeurs suivantes par les vôtres
+
+    username = 'root'
+    password = ''
+
+    #########################################################
+
+    warehouse = DataWarehouseManager('localhost', username, password, 'Weather_DataWarehouse', 'utf8mb4', DictCursor)
     warehouse.connect()
     return warehouse
 
 
-# Load data (Third Layout)
 def fetch_years():
     cursor = connect_to_data_warehouse().get_cursor()
     query = "SELECT year FROM DateDim"
@@ -31,7 +35,6 @@ def fetch_years():
     return [year for year in years_list if year % 5 == 0]
 
 
-# First Layout (Heatmap)
 def fetch_data_heatmap(parameter, year_range, month_range):
     cursor = connect_to_data_warehouse().get_cursor()
     min_year, max_year = year_range
@@ -53,8 +56,8 @@ def fetch_data_heatmap(parameter, year_range, month_range):
     return df
 
 
-@app.callback(Output('heatmap', 'figure'),
-    [Input('parameter-dropdown', 'value'), Input('year-range-slider', 'value'), Input('month-range-slider', 'value')])
+@app.callback(Output('heatmap', 'figure'), [Input('parameter-dropdown', 'value'), Input('year-range-slider', 'value'),
+                                            Input('month-range-slider', 'value')])
 def update_heatmap(parameter, year_range, month_range):
     df = fetch_data_heatmap(parameter, year_range, month_range)
     if not df.empty:
@@ -72,7 +75,6 @@ def update_heatmap(parameter, year_range, month_range):
     return fig
 
 
-# Second Layout (Diagramme à Barres )
 def fetch_data_barchart(year_range, month_range, parameter, country=None):
     cursor = connect_to_data_warehouse().get_cursor()
     min_year, max_year = year_range
@@ -95,8 +97,8 @@ def fetch_data_barchart(year_range, month_range, parameter, country=None):
 
 
 @app.callback(Output('bar-chart', 'figure'),
-    [Input('year-range-slider-bar', 'value'), Input('month-range-slider-bar', 'value'),
-     Input('parameter-dropdown-bar', 'value'), Input('country-dropdown-bar', 'value')])
+              [Input('year-range-slider-bar', 'value'), Input('month-range-slider-bar', 'value'),
+               Input('parameter-dropdown-bar', 'value'), Input('country-dropdown-bar', 'value')])
 def update_bar_chart(year_range, month_range, parameter, country):
     df = fetch_data_barchart(year_range, month_range, parameter, country)
     if not df.empty:
@@ -113,7 +115,6 @@ def update_bar_chart(year_range, month_range, parameter, country):
     return fig
 
 
-# Third Layout (Graphique Temporel)
 def fetch_line_data(country=None):
     cursor = connect_to_data_warehouse().get_cursor()
     country_filter = f"WHERE StationDim.station_country = '{country}'" if country else ""
@@ -131,7 +132,7 @@ def fetch_line_data(country=None):
 
 
 @app.callback(Output('weather-graph', 'figure'),
-    [Input('param-selector', 'value'), Input('country-dropdown-line', 'value')])
+              [Input('param-selector', 'value'), Input('country-dropdown-line', 'value')])
 def update_graph(selected_param, country):
     df = fetch_line_data(country)
     if not df.empty:
@@ -146,98 +147,216 @@ def update_graph(selected_param, country):
 
 line_chart_data = fetch_line_data()
 
-# Define layout of Dash app
 app.layout = html.Div([html.H1("Tableau de Bord d'Analyse Météorologique", className='header',
                                style={'textAlign': 'center', 'marginBottom': '40px', 'color': '#333'}),
-    dcc.Tabs(id="tabs", value='tab-1', children=[dcc.Tab(label='Carte de Chaleur', value='tab-1', children=[html.Div([
-        html.Label("Sélectionnez le paramètre météorologique:", className='label',
-                   style={'textAlign': 'center', 'marginBottom': '20px', 'marginTop': '10px'}),
-        dcc.Dropdown(id='parameter-dropdown', options=[{'label': 'Analyse des précipitations (PRCP)', 'value': 'PRCP'},
-            {'label': 'Analyse des températures moyennes (TAVG)', 'value': 'TAVG'},
-            {'label': 'Analyse des températures maximales (TMAX)', 'value': 'TMAX'},
-            {'label': 'Analyse des températures minimales (TMIN)', 'value': 'TMIN'},
-            {'label': 'Analyse de l\'enneigement (SNWD)', 'value': 'SNWD'},
-            {'label': 'Analyse des heures de gel (PGTM)', 'value': 'PGTM'},
-            {'label': 'Analyse de la neige (SNOW)', 'value': 'SNOW'},
-            {'label': 'Analyse de la direction du vent (WDFG)', 'value': 'WDFG'},
-            {'label': 'Analyse de la vitesse du vent (WSFG)', 'value': 'WSFG'}], value='PRCP', clearable=False,
-                     className='dropdown'), html.Label("Choisissez l'intervalle de temps:", className='label',
-                                                       style={'textAlign': 'center', 'marginBottom': '20px',
-                                                              'marginTop': '10px'}),
-        dcc.RangeSlider(id='year-range-slider', min=int(fetch_years()[0]), max=int(fetch_years()[-1]), step=1,
-                        value=[int(fetch_years()[0]), int(fetch_years()[-1])],
-                        marks={int(year): str(year) for year in fetch_years()},
-                        tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
-        html.Label("Choisissez l'intervalle des mois:", className='label',
-                   style={'textAlign': 'center', 'marginBottom': '20px', 'marginTop': '10px'}),
-        dcc.RangeSlider(id='month-range-slider', min=1, max=12, step=1, value=[1, 12],
-                        marks={month: str(month) for month in list(range(1, 13))},
-                        tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
-        dcc.Graph(id='heatmap', className='heatmap-graph')], className='content')]),
-        dcc.Tab(label='Diagramme à Barres ', value='tab-2', children=[html.Div([
-            html.Label("Sélectionnez le paramètre météorologique:", className='label',
-                       style={'marginBottom': '20px', 'marginTop': '10px'}), dcc.Dropdown(id='parameter-dropdown-bar',
-                                                                                          options=[{
-                                                                                              'label': 'Analyse des précipitations (PRCP)',
-                                                                                              'value': 'PRCP'}, {
-                                                                                              'label': 'Analyse des températures moyennes (TAVG)',
-                                                                                              'value': 'TAVG'}, {
-                                                                                              'label': 'Analyse des températures maximales (TMAX)',
-                                                                                              'value': 'TMAX'}, {
-                                                                                              'label': 'Analyse des températures minimales (TMIN)',
-                                                                                              'value': 'TMIN'}, {
-                                                                                              'label': 'Analyse de l\'enneigement (SNWD)',
-                                                                                              'value': 'SNWD'}, {
-                                                                                              'label': 'Analyse des heures de gel (PGTM)',
-                                                                                              'value': 'PGTM'}, {
-                                                                                              'label': 'Analyse de la neige (SNOW)',
-                                                                                              'value': 'SNOW'}, {
-                                                                                              'label': 'Analyse de la direction du vent (WDFG)',
-                                                                                              'value': 'WDFG'}, {
-                                                                                              'label': 'Analyse de la vitesse du vent (WSFG)',
-                                                                                              'value': 'WSFG'}],
-                                                                                          value='TAVG', clearable=False,
-                                                                                          style={'width': '50%',
-                                                                                                 'margin': 'auto',
-                                                                                                 'marginBottom': '20px'},
-                                                                                          className='dropdown'),
-            html.Label("Sélectionnez un pays:", className='label', style={'marginBottom': '20px', 'marginTop': '10px'}),
-            dcc.Dropdown(id='country-dropdown-bar', options=[{'label': country, 'value': country} for country in
-                sorted(line_chart_data['station_country'].unique())], value=None, clearable=True,
-                         style={'width': '50%', 'margin': 'auto', 'marginBottom': '20px'}, className='dropdown'),
-            html.Label("Choisissez l'intervalle de temps:", className='label',
-                       style={'marginBottom': '20px', 'marginTop': '10px'}),
-            dcc.RangeSlider(id='year-range-slider-bar', min=int(fetch_years()[0]), max=int(fetch_years()[-1]), step=1,
-                            value=[int(fetch_years()[0]), int(fetch_years()[-1])],
-                            marks={int(year): str(year) for year in fetch_years()},
-                            tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
-            html.Label("Choisissez l'intervalle des mois:", className='label',
-                       style={'marginBottom': '20px', 'marginTop': '10px'}),
-            dcc.RangeSlider(id='month-range-slider-bar', min=1, max=12, step=1, value=[1, 12],
-                            marks={month: str(month) for month in list(range(1, 13))},
-                            tooltip={'always_visible': True, 'placement': 'bottom'}, className='slider'),
-            dcc.Graph(id='bar-chart', className='bar-chart')], className='content')]),
-        dcc.Tab(label='Graphique Temporel', value='tab-3', children=[html.Div([
-            html.Label("Sélectionnez le paramètre météorologique:", className='label',
-                       style={'marginBottom': '20px', 'marginTop': '10px'}), dcc.Dropdown(id='param-selector', options=[
-                {'label': 'Precipitation (PRCP)', 'value': 'PRCP'},
-                {'label': 'Average Temperature (TAVG)', 'value': 'TAVG'},
-                {'label': 'Maximum Temperature (TMAX)', 'value': 'TMAX'},
-                {'label': 'Minimum Temperature (TMIN)', 'value': 'TMIN'},
-                {'label': 'Snow Depth (SNWD)', 'value': 'SNWD'}, {'label': 'Peak Gust Time (PGTM)', 'value': 'PGTM'},
-                {'label': 'Snowfall (SNOW)', 'value': 'SNOW'},
-                {'label': 'Direction of Fastest 2-Min Wind (WDFG)', 'value': 'WDFG'},
-                {'label': 'Speed of Fastest 2-Min Wind (WSFG)', 'value': 'WSFG'}, ], value='PRCP', clearable=False,
-                                                                                          style={'width': '80%',
-                                                                                                 'margin': 'auto'},
-                                                                                          className='dropdown'),
-            html.Label("Sélectionnez un pays:", className='label', style={'marginBottom': '20px', 'marginTop': '10px'}),
-            dcc.Dropdown(id='country-dropdown-line', options=[{'label': country, 'value': country} for country in
-                sorted(line_chart_data['station_country'].unique())], value=None, clearable=True,
-                         style={'width': '80%', 'margin': 'auto', 'marginBottom': '20px', 'marginTop': '10px'},
-                         className='dropdown'), dcc.Graph(id='weather-graph', className='line-chart')],
-            className='content')])])], style={'backgroundColor': '#f1f1f1', 'padding': '20px'})
+                       dcc.Tabs(id="tabs", value='tab-1', children=[dcc.Tab(label='Carte de Chaleur', value='tab-1',
+                                                                            children=[html.Div([html.Label(
+                                                                                "Sélectionnez le paramètre météorologique:",
+                                                                                className='label',
+                                                                                style={'textAlign': 'center',
+                                                                                       'marginBottom': '20px',
+                                                                                       'marginTop': '10px'}),
+                                                                                dcc.Dropdown(id='parameter-dropdown',
+                                                                                             options=[{
+                                                                                                          'label': 'Analyse des précipitations (PRCP)',
+                                                                                                          'value': 'PRCP'},
+                                                                                                      {
+                                                                                                          'label': 'Analyse des températures moyennes (TAVG)',
+                                                                                                          'value': 'TAVG'},
+                                                                                                      {
+                                                                                                          'label': 'Analyse des températures maximales (TMAX)',
+                                                                                                          'value': 'TMAX'},
+                                                                                                      {
+                                                                                                          'label': 'Analyse des températures minimales (TMIN)',
+                                                                                                          'value': 'TMIN'},
+                                                                                                      {
+                                                                                                          'label': 'Analyse de l\'enneigement (SNWD)',
+                                                                                                          'value': 'SNWD'},
+                                                                                                      {
+                                                                                                          'label': 'Analyse des heures de gel (PGTM)',
+                                                                                                          'value': 'PGTM'},
+                                                                                                      {
+                                                                                                          'label': 'Analyse de la neige (SNOW)',
+                                                                                                          'value': 'SNOW'},
+                                                                                                      {
+                                                                                                          'label': 'Analyse de la direction du vent (WDFG)',
+                                                                                                          'value': 'WDFG'},
+                                                                                                      {
+                                                                                                          'label': 'Analyse de la vitesse du vent (WSFG)',
+                                                                                                          'value': 'WSFG'}],
+                                                                                             value='PRCP',
+                                                                                             clearable=False,
+                                                                                             className='dropdown'),
+                                                                                html.Label(
+                                                                                    "Choisissez l'intervalle de temps:",
+                                                                                    className='label',
+                                                                                    style={'textAlign': 'center',
+                                                                                           'marginBottom': '20px',
+                                                                                           'marginTop': '10px'}),
+                                                                                dcc.RangeSlider(id='year-range-slider',
+                                                                                                min=int(
+                                                                                                    fetch_years()[0]),
+                                                                                                max=int(
+                                                                                                    fetch_years()[-1]),
+                                                                                                step=1, value=[
+                                                                                        int(fetch_years()[0]),
+                                                                                        int(fetch_years()[-1])], marks={
+                                                                                        int(year): str(year) for year in
+                                                                                        fetch_years()}, tooltip={
+                                                                                        'always_visible': True,
+                                                                                        'placement': 'bottom'},
+                                                                                                className='slider'),
+                                                                                html.Label(
+                                                                                    "Choisissez l'intervalle des mois:",
+                                                                                    className='label',
+                                                                                    style={'textAlign': 'center',
+                                                                                           'marginBottom': '20px',
+                                                                                           'marginTop': '10px'}),
+                                                                                dcc.RangeSlider(id='month-range-slider',
+                                                                                                min=1, max=12, step=1,
+                                                                                                value=[1, 12],
+                                                                                                marks={month: str(month)
+                                                                                                       for month in
+                                                                                                       list(range(1,
+                                                                                                                  13))},
+                                                                                                tooltip={
+                                                                                                    'always_visible': True,
+                                                                                                    'placement': 'bottom'},
+                                                                                                className='slider'),
+                                                                                dcc.Graph(id='heatmap',
+                                                                                          className='heatmap-graph')],
+                                                                                className='content')]),
+                                                                    dcc.Tab(label='Diagramme à Barres ', value='tab-2',
+                                                                            children=[html.Div([html.Label(
+                                                                                "Sélectionnez le paramètre météorologique:",
+                                                                                className='label',
+                                                                                style={'marginBottom': '20px',
+                                                                                       'marginTop': '10px'}),
+                                                                                dcc.Dropdown(
+                                                                                    id='parameter-dropdown-bar',
+                                                                                    options=[{
+                                                                                        'label': 'Analyse des précipitations (PRCP)',
+                                                                                        'value': 'PRCP'}, {
+                                                                                        'label': 'Analyse des températures moyennes (TAVG)',
+                                                                                        'value': 'TAVG'}, {
+                                                                                        'label': 'Analyse des températures maximales (TMAX)',
+                                                                                        'value': 'TMAX'}, {
+                                                                                        'label': 'Analyse des températures minimales (TMIN)',
+                                                                                        'value': 'TMIN'}, {
+                                                                                        'label': 'Analyse de l\'enneigement (SNWD)',
+                                                                                        'value': 'SNWD'}, {
+                                                                                        'label': 'Analyse des heures de gel (PGTM)',
+                                                                                        'value': 'PGTM'}, {
+                                                                                        'label': 'Analyse de la neige (SNOW)',
+                                                                                        'value': 'SNOW'}, {
+                                                                                        'label': 'Analyse de la direction du vent (WDFG)',
+                                                                                        'value': 'WDFG'}, {
+                                                                                        'label': 'Analyse de la vitesse du vent (WSFG)',
+                                                                                        'value': 'WSFG'}], value='TAVG',
+                                                                                    clearable=False,
+                                                                                    style={'width': '50%',
+                                                                                           'margin': 'auto',
+                                                                                           'marginBottom': '20px'},
+                                                                                    className='dropdown'),
+                                                                                html.Label("Sélectionnez un pays:",
+                                                                                           className='label', style={
+                                                                                        'marginBottom': '20px',
+                                                                                        'marginTop': '10px'}),
+                                                                                dcc.Dropdown(id='country-dropdown-bar',
+                                                                                             options=[{'label': country,
+                                                                                                       'value': country}
+                                                                                                      for country in
+                                                                                                      sorted(
+                                                                                                          line_chart_data[
+                                                                                                              'station_country'].unique())],
+                                                                                             value=None, clearable=True,
+                                                                                             style={'width': '50%',
+                                                                                                    'margin': 'auto',
+                                                                                                    'marginBottom': '20px'},
+                                                                                             className='dropdown'),
+                                                                                html.Label(
+                                                                                    "Choisissez l'intervalle de temps:",
+                                                                                    className='label',
+                                                                                    style={'marginBottom': '20px',
+                                                                                           'marginTop': '10px'}),
+                                                                                dcc.RangeSlider(
+                                                                                    id='year-range-slider-bar',
+                                                                                    min=int(fetch_years()[0]),
+                                                                                    max=int(fetch_years()[-1]), step=1,
+                                                                                    value=[int(fetch_years()[0]),
+                                                                                           int(fetch_years()[-1])],
+                                                                                    marks={int(year): str(year) for year
+                                                                                           in fetch_years()},
+                                                                                    tooltip={'always_visible': True,
+                                                                                             'placement': 'bottom'},
+                                                                                    className='slider'), html.Label(
+                                                                                    "Choisissez l'intervalle des mois:",
+                                                                                    className='label',
+                                                                                    style={'marginBottom': '20px',
+                                                                                           'marginTop': '10px'}),
+                                                                                dcc.RangeSlider(
+                                                                                    id='month-range-slider-bar', min=1,
+                                                                                    max=12, step=1, value=[1, 12],
+                                                                                    marks={month: str(month) for month
+                                                                                           in list(range(1, 13))},
+                                                                                    tooltip={'always_visible': True,
+                                                                                             'placement': 'bottom'},
+                                                                                    className='slider'),
+                                                                                dcc.Graph(id='bar-chart',
+                                                                                          className='bar-chart')],
+                                                                                className='content')]),
+                                                                    dcc.Tab(label='Graphique Temporel', value='tab-3',
+                                                                            children=[html.Div([html.Label(
+                                                                                "Sélectionnez le paramètre météorologique:",
+                                                                                className='label',
+                                                                                style={'marginBottom': '20px',
+                                                                                       'marginTop': '10px'}),
+                                                                                dcc.Dropdown(id='param-selector',
+                                                                                             options=[{
+                                                                                                 'label': 'Precipitation (PRCP)',
+                                                                                                 'value': 'PRCP'}, {
+                                                                                                 'label': 'Average Temperature (TAVG)',
+                                                                                                 'value': 'TAVG'}, {
+                                                                                                 'label': 'Maximum Temperature (TMAX)',
+                                                                                                 'value': 'TMAX'}, {
+                                                                                                 'label': 'Minimum Temperature (TMIN)',
+                                                                                                 'value': 'TMIN'}, {
+                                                                                                 'label': 'Snow Depth (SNWD)',
+                                                                                                 'value': 'SNWD'}, {
+                                                                                                 'label': 'Peak Gust Time (PGTM)',
+                                                                                                 'value': 'PGTM'}, {
+                                                                                                 'label': 'Snowfall (SNOW)',
+                                                                                                 'value': 'SNOW'}, {
+                                                                                                 'label': 'Direction of Fastest 2-Min Wind (WDFG)',
+                                                                                                 'value': 'WDFG'}, {
+                                                                                                 'label': 'Speed of Fastest 2-Min Wind (WSFG)',
+                                                                                                 'value': 'WSFG'}, ],
+                                                                                             value='PRCP',
+                                                                                             clearable=False,
+                                                                                             style={'width': '80%',
+                                                                                                    'margin': 'auto'},
+                                                                                             className='dropdown'),
+                                                                                html.Label("Sélectionnez un pays:",
+                                                                                           className='label', style={
+                                                                                        'marginBottom': '20px',
+                                                                                        'marginTop': '10px'}),
+                                                                                dcc.Dropdown(id='country-dropdown-line',
+                                                                                             options=[{'label': country,
+                                                                                                       'value': country}
+                                                                                                      for country in
+                                                                                                      sorted(
+                                                                                                          line_chart_data[
+                                                                                                              'station_country'].unique())],
+                                                                                             value=None, clearable=True,
+                                                                                             style={'width': '80%',
+                                                                                                    'margin': 'auto',
+                                                                                                    'marginBottom': '20px',
+                                                                                                    'marginTop': '10px'},
+                                                                                             className='dropdown'),
+                                                                                dcc.Graph(id='weather-graph',
+                                                                                          className='line-chart')],
+                                                                                className='content')])])],
+                      style={'backgroundColor': '#f1f1f1', 'padding': '20px'})
 
-# Run the app
 if __name__ == '__main__':
     app.run_server(debug=True)
